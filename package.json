@@ -1,0 +1,19 @@
+{
+  "name": "plinko",
+  "version": "1.0.0",
+  "description": "plinko socket tryout",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Chase Mitchusson",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.2",
+    "node-osc": "^2.0.4",
+    "osc": "^2.2.0",
+    "socket.io": "^1.7.3",
+    "tone": "^0.9.0"
+  }
+}

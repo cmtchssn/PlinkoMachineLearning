@@ -1,0 +1,29 @@
+Project Proposal
+Chase Mitchusson
+
+Make a plinko with matter.js
+  Each node in the plinko plays audio when hit. (tone.js)
+  Dropping a ball down the plinko creates a melody.
+
+Train Wekinator to remember which nodes are hit in the plinko.
+  Choose 1 of 6 starting points from which to drop the plinko.
+  Train Wekinator (intentionally poorly) on outcomes of starting points.
+  Wekinator estimates a melody based on its training, with specific effects presets.
+  The differences in estimated and actual melodies control the timbre of nodes,
+    much like interpolating between presets.
+    // If it starts on a path similar to drop point 1, certain effects are initiated,
+    // but if the path changes to something similar to drop point 4, Wekinator interpolates values.
+
+Then just drop a ton of balls in the plinko and try to break Wekinator.
+  I could program a specific set of ball drops to create a "performable" piece of music.
+
+Tools:
+html
+javascript
+  -matter.js
+  -node.js (?)
+  -tone.js
+web sockets (?)
+Wekinator
+  -input: plinko node data
+  -output: tone.js effects parameters
