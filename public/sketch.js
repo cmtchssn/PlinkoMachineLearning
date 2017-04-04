@@ -27,7 +27,8 @@ var cols = 11;
 var rows = 10;
 var hitList = [];
 var socket;
-var sub1 = [];
+var sub1 = [0, 0, 0, 0, 0];
+var fmSynth;
 
 function preload() {
     //ding = loadSound('ding.mp3');
@@ -41,24 +42,21 @@ function setup(msg) {
     //world.gravity.y = 2;
     socket = io.connect('http://localhost:8008')
     socket.on('pegs', soundDesign);
-    var fmSynth = new Tone.FMSynth({
+    fmSynth = new Tone.FMSynth({
         harmonicity: 3,
         modulationIndex: 10,
         detune: 0
     }).toMaster();
 
+    socket.on('wekTrained', function(data) {
+        sub1 = subset(data, 1, 5);
+        console.log('wekTrained: ' + sub1);
+    })
+
     function collision(event) {
-        fmSynth.triggerAttackRelease(random(180), '32n');
+      soundDesign();
+        //fmSynth.triggerAttackRelease("C4", '32n');
         //console.log(plinkos);
-        //harmonicity
-        //fmSynth.harmonicity = sub1[0];
-        //modulation index
-        //fmSynth.modulationIndex = sub1[1] * 12;
-        //detune
-        //fmSynth.detune = sub1[2] * 70;
-        //pitch
-        //midiNote = sub1[3] * 108;
-        soundDesign();
         var pairs = event.pairs;
         for (var i = 0; i < pairs.length; i++) {
             //var labelA = pairs[i].bodyA.label;
@@ -120,6 +118,9 @@ function draw() {
     }*/
     if (mouseIsPressed) {
         newParticle();
+        for (var i = 0; i <= 119; i++) {
+            hitList[i] = 0.1;
+        }
     }
     Engine.update(engine, 1000 / 30);
     for (var i = 0; i < particles.length; i++) {
@@ -142,19 +143,25 @@ function draw() {
 function hitOn(len, e) {
     var x = e;
     for (var i = 0; i < len; i++) {
-        hitList[i] = 0.1;
+        //hitList[i] = 0.1;
         hitList[x] = 0.9;
     }
     //splice(list,value,position)
-    console.log('Sending: ' + hitList);
+    console.log(hitList);
     socket.emit('pegs', hitList);
 }
 
 function soundDesign(msg) {
     //add var to update dsp params
     //use this function in collision?
-    socket.on('wekTrained', function(data) {
-        var sub1 = subset(data, 1, 5);
-        console.log('wekTrained: ' + sub1);
-    })
+    console.log("sub1[0] " + sub1[0]);
+    console.log("sub1[1] " + sub1[1]);
+    console.log("sub1[2] " + sub1[2]);
+    fmSynth.triggerAttackRelease("C4", '32n');
+    //harmonicity
+    fmSynth.harmonicity.value = Math.round(sub1[0]);
+    //modulation index
+    fmSynth.modulationIndex.value = Math.round(sub1[1]);
+    //detune
+    fmSynth.detune.value = Math.round(sub1[2]);
 }
