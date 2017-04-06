@@ -1,4 +1,8 @@
-// Original code by
+// Musical Machine Learning Plinko by
+// Chase Mitchusson
+// http://chasemitchusson.wordpress.com
+//
+// based on code by
 // Daniel Shiffman
 // http://codingtra.in
 // http://patreon.com/codingtrain
@@ -7,10 +11,6 @@
 // Video 2: https://youtu.be/6s4MJcUyaUE
 // Video 3: https://youtu.be/jN-sW-SxNzk
 // Video 4: https://youtu.be/CdBXmsrkaPs
-//
-// Code adapted for Machine Learning by
-// Chase Mitchusson
-// http://chasemitchusson.wordpress.com
 
 function Boundary(x, y, w, h) {
   var options = {

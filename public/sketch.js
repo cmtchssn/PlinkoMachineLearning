@@ -1,4 +1,8 @@
-// Original code by
+// Musical Machine Learning Plinko by
+// Chase Mitchusson
+// http://chasemitchusson.wordpress.com
+//
+// based on code by
 // Daniel Shiffman
 // http://codingtra.in
 // http://patreon.com/codingtrain
@@ -7,11 +11,7 @@
 // Video 2: https://youtu.be/6s4MJcUyaUE
 // Video 3: https://youtu.be/jN-sW-SxNzk
 // Video 4: https://youtu.be/CdBXmsrkaPs
-//
-// Code adapted for Machine Learning by
-// Chase Mitchusson
-// http://chasemitchusson.wordpress.com
-
+// CONTROL INTERPOLATE TONE.JS
 // module aliases
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -28,11 +28,18 @@ var rows = 10;
 var hitList = [];
 var socket;
 var sub1 = [0, 0, 0, 0, 0];
+var membrane;
+var metal;
+var pluck;
 var fmSynth;
-
-function preload() {
-    //ding = loadSound('ding.mp3');
-}
+var feedbackDelay;
+var distorted;
+var polySynth1;
+var amsy0;
+var chorus;
+var pitchy0;
+var pitchy1;
+var pitchy2;
 
 function setup(msg) {
     createCanvas(600, 700);
@@ -42,11 +49,33 @@ function setup(msg) {
     //world.gravity.y = 2;
     socket = io.connect('http://localhost:8008')
     socket.on('pegs', soundDesign);
-    fmSynth = new Tone.FMSynth({
-        harmonicity: 3,
-        modulationIndex: 10,
-        detune: 0
-    }).toMaster();
+
+    feedbackDelay = new Tone.FeedbackDelay("4n", 0.9).toMaster();
+    distorted = new Tone.Distortion(0.9).toMaster();
+    chorus = new Tone.Chorus(4, 2.5, 0.5).toMaster();
+    pitchy0 = new Tone.PitchShift(8).toMaster();
+    pitchy1 = new Tone.PitchShift(8).toMaster();
+    pitchy2 = new Tone.PitchShift(8).toMaster();
+
+    membrane = new Tone.MembraneSynth({
+        pitchDecay: 0.05,
+        octave: 10,
+        oscillator: {
+            type: "sine"
+        },
+        envelope: {
+            attack: 0.004,
+            decay: 0.4,
+            sustain: 0.01,
+            release: 1.4,
+            attackCurve: "exponential"
+        }
+    }).chain(pitchy0, chorus);
+
+    polySynth1 = new Tone.PolySynth(6, Tone.PluckSynth).chain(pitchy1, distorted);
+
+    amsy0 = new Tone.AMSynth().chain(pitchy2, feedbackDelay);
+
 
     socket.on('wekTrained', function(data) {
         sub1 = subset(data, 1, 5);
@@ -54,22 +83,39 @@ function setup(msg) {
     })
 
     function collision(event) {
-      soundDesign();
-        //fmSynth.triggerAttackRelease("C4", '32n');
-        //console.log(plinkos);
+      membrane.pitchDecay = sub1[0];
+      feedbackDelay.feedback.value = sub1[1];
+      pitchy0.pitch = sub1[2] * 6;
+      pitchy1.pitch = sub1[3] * 4;
+      pitchy2.pitch = sub1[4] * 2;
         var pairs = event.pairs;
         for (var i = 0; i < pairs.length; i++) {
-            //var labelA = pairs[i].bodyA.label;
-            //var labelB = pairs[i].bodyB.label;
             if (pairs[i].bodyA.label == 'plinko' && pairs[i].bodyA.id <= 119) {
-                //ding.play();
                 hitOn(plinkos.length, pairs[i].bodyA.id);
                 console.log("BodyA: " + pairs[i].bodyA.id);
             }
             if (pairs[i].bodyB.label == 'plinko' && pairs[i].bodyB.id <= 119) {
-                //ding.play();
                 hitOn(plinkos.length, pairs[i].bodyB.id);
                 console.log("BodyB: " + pairs[i].bodyB.id);
+            }
+            if (pairs[i].bodyA.label == 'plinko' && pairs[i].bodyA.id <= 119 || pairs[i].bodyB.label == 'plinko' && pairs[i].bodyB.id <= 119) {
+              if (pairs[i].bodyA.label == 'plinko' && pairs[i].bodyA.id <= 23 || pairs[i].bodyB.label == 'plinko' && pairs[i].bodyB.id <= 23) {
+                amsy0.triggerAttackRelease('D#5', '32n');
+                polySynth1.triggerAttackRelease(['E4', 'B4'], '32n');
+              } else if (pairs[i].bodyA.label == 'plinko' && pairs[i].bodyA.id <= 46 || pairs[i].bodyB.label == 'plinko' && pairs[i].bodyB.id <= 46) {
+                  amsy0.triggerAttackRelease('G#5', '32n');
+                  polySynth1.triggerAttackRelease(['B4', 'E5'], '32n');
+              } else if (pairs[i].bodyA.label == 'plinko' && pairs[i].bodyA.id <= 69 || pairs[i].bodyB.label == 'plinko' && pairs[i].bodyB.id <= 69) {
+                  amsy0.triggerAttackRelease('D#6', '32n');
+                  polySynth1.triggerAttackRelease(['E5', 'B6'], '32n');
+              } else if (pairs[i].bodyA.label == 'plinko' && pairs[i].bodyA.id <= 92 || pairs[i].bodyB.label == 'plinko' && pairs[i].bodyB.id <= 92) {
+                  amsy0.triggerAttackRelease('G#6', '32n');
+                  polySynth1.triggerAttackRelease(['A4', 'E5'], '32n');
+              } else if (pairs[i].bodyA.label == 'plinko' && pairs[i].bodyA.id <= 119 || pairs[i].bodyB.label == 'plinko' && pairs[i].bodyB.id <= 119) {
+                  amsy0.triggerAttackRelease('D#7', '32n');
+                  polySynth1.triggerAttackRelease(['E4', 'B4'], '32n');
+                  membrane.triggerAttackRelease('D#2', '32n');
+              }
             }
         }
     }
@@ -143,25 +189,12 @@ function draw() {
 function hitOn(len, e) {
     var x = e;
     for (var i = 0; i < len; i++) {
-        //hitList[i] = 0.1;
         hitList[x] = 0.9;
     }
-    //splice(list,value,position)
     console.log(hitList);
     socket.emit('pegs', hitList);
 }
 
 function soundDesign(msg) {
-    //add var to update dsp params
-    //use this function in collision?
-    console.log("sub1[0] " + sub1[0]);
-    console.log("sub1[1] " + sub1[1]);
-    console.log("sub1[2] " + sub1[2]);
-    fmSynth.triggerAttackRelease("C4", '32n');
-    //harmonicity
-    fmSynth.harmonicity.value = Math.round(sub1[0]);
-    //modulation index
-    fmSynth.modulationIndex.value = Math.round(sub1[1]);
-    //detune
-    fmSynth.detune.value = Math.round(sub1[2]);
+
 }
