@@ -16,3 +16,10 @@
    Click Run.  
 * Open a browser and visit http://localhost:8008
 * Click mouse to drop balls.
+
+## Troubleshooting audio problems
+* If audio cuts out in the middle of use, restart window ```F5```  
+* If audio gets out of hand and won't stop playing  
+   Press ```F12``` in your browser to open the console  
+   In the console type ```noLoop();``` and press enter  
+   Plinko should then pause and mute  
