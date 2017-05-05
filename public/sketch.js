@@ -11,7 +11,14 @@
 // Video 2: https://youtu.be/6s4MJcUyaUE
 // Video 3: https://youtu.be/jN-sW-SxNzk
 // Video 4: https://youtu.be/CdBXmsrkaPs
+//
 // CONTROL INTERPOLATE TONE.JS
+// SET BETTER PARAMS; MORE DIFFERENT FROM LEFT TO RIGHT AND TOP TO BOTTOM
+// param where particle x-value changes harmonicity
+// param where travelling left does a, travelling right does b
+// acm digital libraries
+// 2-4 pages of documentation for the project using LaTex/Overleaf due Finals week
+
 // module aliases
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -37,9 +44,10 @@ var distorted;
 var polySynth1;
 var amsy0;
 var chorus;
-var pitchy0;
-var pitchy1;
-var pitchy2;
+//var pitchy0;
+//var pitchy1;
+//var pitchy2;
+//var interp;
 
 function setup(msg) {
     createCanvas(600, 700);
@@ -50,12 +58,13 @@ function setup(msg) {
     socket = io.connect('http://localhost:8008')
     socket.on('pegs', soundDesign);
 
-    feedbackDelay = new Tone.FeedbackDelay("4n", 0.9).toMaster();
-    distorted = new Tone.Distortion(0.9).toMaster();
+    //interp = new Tone.CtrlInterpolate([63, 68, 75, 78]);
+    feedbackDelay = new Tone.FeedbackDelay("4n", 0.25).toMaster();
+    distorted = new Tone.Distortion(0.25).toMaster();
     chorus = new Tone.Chorus(4, 2.5, 0.5).toMaster();
-    pitchy0 = new Tone.PitchShift(8).toMaster();
-    pitchy1 = new Tone.PitchShift(8).toMaster();
-    pitchy2 = new Tone.PitchShift(8).toMaster();
+    //pitchy0 = new Tone.PitchShift(8).toMaster();
+    //pitchy1 = new Tone.PitchShift(8).toMaster();
+    //pitchy2 = new Tone.PitchShift(8).toMaster();
 
     membrane = new Tone.MembraneSynth({
         pitchDecay: 0.05,
@@ -70,11 +79,11 @@ function setup(msg) {
             release: 1.4,
             attackCurve: "exponential"
         }
-    }).chain(pitchy0, chorus);
+    }).chain(chorus);
 
-    polySynth1 = new Tone.PolySynth(6, Tone.PluckSynth).chain(pitchy1, distorted);
+    polySynth1 = new Tone.PolySynth(6, Tone.PluckSynth).chain(distorted);
 
-    amsy0 = new Tone.AMSynth().chain(pitchy2, feedbackDelay);
+    amsy0 = new Tone.AMSynth().chain(feedbackDelay);
 
 
     socket.on('wekTrained', function(data) {
@@ -85,9 +94,12 @@ function setup(msg) {
     function collision(event) {
       membrane.pitchDecay = sub1[0];
       feedbackDelay.feedback.value = sub1[1];
-      pitchy0.pitch = sub1[2] * 6;
-      pitchy1.pitch = sub1[3] * 4;
-      pitchy2.pitch = sub1[4] * 2;
+      distorted.distortion = sub1[2];
+      chorus.depth = sub1[3];
+      amsy0.portamento = sub1[4];
+      //interp.index = sub1[2] * 4;
+      //pitchy1.pitch = sub1[3] * 4;
+      //pitchy2.pitch = sub1[4] * 2;
         var pairs = event.pairs;
         for (var i = 0; i < pairs.length; i++) {
             if (pairs[i].bodyA.label == 'plinko' && pairs[i].bodyA.id <= 119) {
@@ -162,12 +174,12 @@ function draw() {
     /*if (frameCount % 20 == 0) {
         newParticle();
     }*/
-    if (mouseIsPressed) {
+    /*if (mouseIsPressed) {
         newParticle();
         for (var i = 0; i <= 119; i++) {
             hitList[i] = 0.1;
         }
-    }
+    }*/
     Engine.update(engine, 1000 / 30);
     for (var i = 0; i < particles.length; i++) {
         particles[i].show();
@@ -185,6 +197,13 @@ function draw() {
         //bounds[i].show();
     }
 }
+
+function mousePressed() {
+    newParticle();
+    for (var i = 0; i <= 119; i++) {
+        hitList[i] = 0.1;
+    }
+  }
 
 function hitOn(len, e) {
     var x = e;
